@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UW Buddy</title>
+<style>
+  :root{
+    --bg:#f7f7fb;
+    --panel:#ffffff;
+    --border:#e5e6eb;
+    --shadow:0 1px 8px rgba(0,0,0,.06);
+
+    --tab-text:#1a1a1a;
+    --tab-active:#111;
+
+    --tab-yellow:#ffe68a;
+    --tab-blue:#d9eaff;
+    --tab-purple:#e7defc;
+    --tab-green:#dbf2e2;
+    --tab-hover: rgba(0,0,0,.04);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:#111;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  }
+  .app{
+    display:flex; height:100vh; overflow:hidden;
+  }
+  /* Left tab rail */
+  .tabs{
+    width: 240px; min-width: 220px;
+    border-right:1px solid var(--border);
+    background:#fafafa;
+    display:flex; flex-direction:column; gap:10px;
+    padding:16px;
+  }
+  .brand{ font-weight:800; font-size:18px; margin-bottom:6px; }
+  .hint{ font-size:12px; color:#666; margin-bottom:10px; }
+
+  .tab{
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 10px;
+    text-align:left;
+    cursor:pointer;
+    background:#fff;
+    color:var(--tab-text);
+    box-shadow: var(--shadow);
+    transition: transform .05s ease, background .15s ease, box-shadow .15s ease;
+    line-height:1.2;
+  }
+  .tab:hover{ background:var(--tab-hover); }
+  .tab.active{
+    outline:2px solid #8a8a8a15;
+    transform: translateY(-1px);
+    color: var(--tab-active);
+  }
+  .tab .title{ font-weight:700; }
+  .tab.yellow{ background: var(--tab-yellow); }
+  .tab.blue{ background: var(--tab-blue); }
+  .tab.purple{ background: var(--tab-purple); }
+  .tab.green{ background: var(--tab-green); }
+
+  /* Right content area */
+  .content{
+    flex:1; display:flex; flex-direction:column; overflow:hidden;
+  }
+  .bar{
+    height:54px; display:flex; align-items:center; justify-content:space-between;
+    padding:0 16px; background:var(--panel); border-bottom:1px solid var(--border);
+  }
+  .bar h1{ margin:0; font-size:16px; }
+  .frames{
+    position:relative; flex:1; background:#fff;
+  }
+  .frames iframe{
+    position:absolute; inset:0; width:100%; height:100%;
+    border:0; background:#fff;
+  }
+  .frames iframe.hidden{ display:none; }
+  /* Hide the raw code containers */
+  textarea.code-hold{ display:none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Left vertical tabs -->
+  <nav class="tabs" aria-label="Tools">
+    <div class="brand">UW Buddy</div>
+    <div class="hint">Select a tool</div>
+    <button class="tab yellow active" data-frame="frame-bmi">
+      <div class="title">Child BMI Calculator</div>
+    </button>
+    <button class="tab blue" data-frame="frame-iwl">
+      <div class="title">Intentional Weight Loss Calculator</div>
+    </button>
+    <button class="tab purple" data-frame="frame-date">
+      <div class="title">Date Duration/MIB Time Modifier Calculator</div>
+    </button>
+    <button class="tab green" data-frame="frame-bp">
+      <div class="title">BP Average Calculator</div>
+    </button>
+  </nav>
+
+  <!-- Right: title bar + iframe stage -->
+  <section class="content">
+    <div class="bar">
+      <h1 id="barTitle">Child BMI Calculator</h1>
+    </div>
+    <div class="frames">
+      <iframe id="frame-bmi" title="Child BMI Calculator"></iframe>
+      <iframe id="frame-iwl" class="hidden" title="Intentional Weight Loss Calculator"></iframe>
+      <iframe id="frame-date" class="hidden" title="Date Duration/MIB Time Modifier Calculator"></iframe>
+      <iframe id="frame-bp" class="hidden" title="BP Average Calculator"></iframe>
+    </div>
+  </section>
+</div>
+
+<!-- =============================== -->
+<!-- Embedded apps (as HTML templates) -->
+<!-- =============================== -->
+
+<!-- Child BMI Calculator (functional, yellow theme) -->
+<template id="code-bmi"><!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Juvy Wizard</title>
+<style>
+  /* ===== Yellow Card Theme (formatting only) ===== */
+  :root{
+    --y-bg:#fffbea;
+    --y-soft:#fff6d1;
+    --y-panel:#fffdf4;
+    --y-border:#f2e6a8;
+    --y-accent:#8a6d1d;
+    --y-muted:#7a6f3a;
+    --green:#1f7a35;
+    --red:#c62828;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0;
+    background:var(--y-bg);
+    color:#1b1b1b;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  }
+  .wrap{ max-width:760px; margin:22px auto 32px; padding:0 16px; }
+  .card{
+    background:var(--y-panel);
+    border:1px solid var(--y-border);
+    border-radius:16px;
+    box-shadow:0 2px 10px rgba(138,109,29,0.08);
+    padding:18px;
+  }
+  h1{ margin:0 0 14px; font-size:20px; font-weight:800; color:var(--y-accent); }
+  .row{ display:flex; align-items:center; gap:10px; margin:8px 0; flex-wrap:wrap; }
+  label{ font-weight:700; min-width:180px; color:var(--y-accent); }
+  .inline{ display:inline-flex; align-items:center; gap:8px; }
+
+  input[type="text"], input[type="number"]{
+    padding:8px 10px; font-size:14px;
+    border:1px solid var(--y-border);
+    border-radius:12px;
+    background:#fffef6;
+    outline:none;
+  }
+  input[type="text"]:focus, input[type="number"]:focus{
+    border-color:#efd76b; box-shadow:0 0 0 3px rgba(239,215,107,0.25);
+  }
+  input.w100{ width: 100px; }
+  input.w60{ width: 60px; }
+  input.w120{ width: 120px; }
+
+  .btn{
+    padding:10px 14px; font-size:14px; cursor:pointer;
+    border:1px solid var(--y-border);
+    border-radius:999px;
+    background:var(--y-soft);
+    color:#5e4d0e;
+    transition:transform .02s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{ background:#ffeeb0; }
+  .btn:active{ transform:scale(0.99); }
+  .btn + .btn{ margin-left:8px; }
+
+  .small{ font-size:12px; color:var(--y-muted); }
+  .line{ height:1px; background:var(--y-border); margin:14px 0; }
+
+  textarea{
+    width:100%; box-sizing:border-box; font-size:14px; padding:10px 12px;
+    border:1px solid var(--y-border); border-radius:12px; background:#fffef6;
+  }
+  #summary{ height:96px; }
+  #caseNotes{ height:70px; }
+  #result{ font-size:22px; font-weight:800; margin-top:8px; min-height:28px; }
+  .green{ color: var(--green); }
+  .red{ color: var(--red); }
+  .hint{ margin-left:10px; color:var(--y-muted); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Juvy Wizard</h1>
+
+      <div class="row">
+        <label>Child's DOB:</label>
+        <div class="inline">
+          <input id="dobMonth" class="w60" type="number" placeholder="MM" min="1" max="12" />
+          <span>/</span>
+          <input id="dobDay" class="w60" type="number" placeholder="DD" min="1" max="31" />
+          <span>/</span>
+          <input id="dobYear" class="w100" type="number" placeholder="YYYY" min="1900" />
+        </div>
+      </div>
+
+      <div class="row">
+        <label>Gender:</label>
+        <div class="inline">
+          <label><input type="radio" name="gender" value="M" /> Male</label>
+          <label><input type="radio" name="gender" value="F" /> Female</label>
+        </div>
+      </div>
+
+      <div class="row">
+        <label>Height:</label>
+        <div class="inline">
+          <input id="feet" class="w60" type="number" inputmode="numeric" min="0" step="1" />
+          <span>ft</span>
+          <input id="inches" class="w60" type="number" inputmode="decimal" min="0" step="0.1" />
+          <span>in</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="weight">Weight (lbs):</label>
+        <input id="weight" class="w120" type="text" inputmode="decimal" />
+      </div>
+
+      <div class="row">
+        <button id="calc" class="btn" type="button">Calculate</button>
+        <span class="small hint">BMI/decision will not populate until Calculate button is clicked</span>
+      </div>
+      <div class="row">
+        <button id="clear" class="btn" type="button">Clear</button>
+      </div>
+
+      <div class="line"></div>
+
+      <div class="row">
+        <label>Summary:</label>
+      </div>
+      <div class="row">
+        <textarea id="summary" readonly></textarea>
+      </div>
+
+      <div class="row" style="align-items: baseline;">
+        <label>Case notes:</label>
+        <button id="copy" class="btn" type="button">Copy</button>
+      </div>
+      <div class="row">
+        <textarea id="caseNotes" readonly></textarea>
+      </div>
+
+      <div id="result"></div>
+    </div>
+  </div>
+
+<script>
+/* -------------------- Data Tables -------------------- */
+const MinW = {
+  M: {0:5.1,1:6.7,2:8.3,3:9.7,4:11.2,5:12.4,6:13.6,7:14.5,8:15.4,9:16.2,10:16.7,11:17.6,
+      12:18.1,13:18.6,14:19.1,15:19.5,16:19.9,17:20.3,18:20.6,19:20.9,20:21.1,21:21.4,22:21.7,23:22.0,
+      24:22.3,25:22.5,26:22.8,27:23.1,28:23.4,29:23.7,30:24.0,31:24.2,32:24.4,33:24.6,34:24.8,35:25.0},
+  F: {0:5.0,1:6.4,2:7.8,3:9.0,4:10.2,5:11.3,6:12.2,7:13.1,8:14.0,9:14.9,10:15.4,11:16.2,
+      12:16.7,13:17.3,14:17.8,15:18.3,16:18.8,17:19.2,18:19.6,19:20.1,20:20.5,21:20.6,22:20.9,23:21.2,
+      24:21.5,25:21.8,26:22.0,27:22.2,28:22.4,29:22.7,30:23.0,31:23.2,32:23.4,33:23.6,34:23.8,35:24.2}
+};
+
+const BMIDecline = {
+  M: {"3.0":{low:11.8,high:28.6},"3.5":{low:11.6,high:28.3},"4.0":{low:11.4,high:28.1},"4.5":{low:11.3,high:28.0},
+      "5.0":{low:11.2,high:28.3},"5.5":{low:11.2,high:29.0},"6.0":{low:11.1,high:30.0},"6.5":{low:11.1,high:30.8},
+      "7.0":{low:11.0,high:31.6},"7.5":{low:11.0,high:32.4},"8.0":{low:11.1,high:33.2},"8.5":{low:11.1,high:34.0},
+      "9.0":{low:11.2,high:34.8},"9.5":{low:11.3,high:35.5},"10.0":{low:11.4,high:36.2},"10.5":{low:11.6,high:36.9},
+      "11.0":{low:11.8,high:37.5},"11.5":{low:12.0,high:38.1},"12.0":{low:12.2,high:38.4},"12.5":{low:12.4,high:39.0},
+      "13.0":{low:12.6,high:39.6},"13.5":{low:13.0,high:40.1},"14.0":{low:13.4,high:40.6},"14.5":{low:13.7,high:41.2},
+      "15.0":{low:14.0,high:41.7},"15.5":{low:14.3,high:42.2},"16.0":{low:14.6,high:42.5}},
+  F: {"3.0":{low:11.6,high:28.6},"3.5":{low:11.3,high:28.4},"4.0":{low:11.2,high:28.3},"4.5":{low:11.0,high:28.3},
+      "5.0":{low:11.0,high:28.6},"5.5":{low:10.9,high:29.4},"6.0":{low:10.8,high:30.4},"6.5":{low:10.7,high:31.3},
+      "7.0":{low:10.7,high:32.1},"7.5":{low:10.8,high:32.9},"8.0":{low:10.9,high:33.8},"8.5":{low:10.9,high:34.7},
+      "9.0":{low:11.0,high:35.6},"9.5":{low:11.1,high:36.3},"10.0":{low:11.2,high:37.1},"10.5":{low:11.4,high:37.8},
+      "11.0":{low:11.6,high:38.4},"11.5":{low:11.8,high:39.0},"12.0":{low:12.0,high:39.5},"12.5":{low:12.2,high:40.0},
+      "13.0":{low:12.5,high:40.7},"13.5":{low:12.8,high:41.3},"14.0":{low:13.2,high:41.8},"14.5":{low:13.5,high:42.5},
+      "15.0":{low:13.8,high:43.0},"15.5":{low:14.0,high:43.5},"16.0":{low:14.4,high:43.9}}
+};
+
+/* -------------------- Helpers -------------------- */
+function parseDOBParts(mm, dd, yy) {
+  if (!mm || !dd || !yy) return null;
+  mm = +mm; dd = +dd; yy = +yy;
+  if (yy < 1900 || mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+  const dob = new Date(yy, mm - 1, dd);
+  if (isNaN(dob)) return null;
+  const now = new Date();
+  let total = (now.getFullYear() - yy) * 12 + (now.getMonth() + 1 - mm);
+  if (now.getDate() < dd) total -= 1;
+  if (total < 0) return null;
+  const y = Math.floor(total / 12);
+  const mth = total % 12;
+  return { ok: true, y, m: mth, total };
+}
+
+function nearestHalf(val, min, max) {
+  let h = Math.round(val * 2) / 2;
+  if (h < min) h = min;
+  if (h > max) h = max;
+  return h;
+}
+
+function getDeclineRange(ageYrsHalf, gender) {
+  const key = ageYrsHalf.toFixed(1);
+  const g = BMIDecline[gender] || {};
+  return g[key] || null;
+}
+
+function getMinWeight(months, gender) {
+  const g = MinW[gender] || {};
+  const m = Math.max(0, Math.min(35, months|0));
+  return g[m];
+}
+
+function fmtFloat(x, digits=1){ return (x==null || isNaN(x)) ? "" : (+x).toFixed(digits); }
+
+/* -------------------- UI wiring -------------------- */
+const $ = sel => document.querySelector(sel);
+const dobMonthEl = $('#dobMonth');
+const dobDayEl   = $('#dobDay');
+const dobYearEl  = $('#dobYear');
+const feetEl = $('#feet');
+const inchesEl = $('#inches');
+const weightEl = $('#weight');
+const summaryEl = $('#summary');
+const caseNotesEl = $('#caseNotes');
+const resultEl = $('#result');
+const calcBtn = $('#calc');
+const clearBtn = $('#clear');
+const copyBtn = $('#copy');
+
+function currentGender() {
+  const r = document.querySelector('input[name="gender"]:checked');
+  return r ? r.value : "";
+}
+
+function refreshSummaryOnly() {
+  const gender = currentGender();
+  const a = parseDOBParts(dobMonthEl.value, dobDayEl.value, dobYearEl.value);
+  let txt = "";
+  if (a && a.ok) {
+    let ageText = `${a.y}yrs ${a.m}mos`;
+    if (a.total < 36 && a.total >= 10) ageText += ` (${a.total} mos)`;
+    txt = (gender ? gender + " " : "") + ageText;
+  }
+  summaryEl.value = txt;
+  resultEl.textContent = "";
+  resultEl.className = "";
+  caseNotesEl.value = "";
+}
+
+['input','change'].forEach(evt => {
+  [dobMonthEl, dobDayEl, dobYearEl].forEach(el => el.addEventListener(evt, refreshSummaryOnly));
+  document.querySelectorAll('input[name="gender"]').forEach(r => r.addEventListener(evt, refreshSummaryOnly));
+});
+
+clearBtn.addEventListener('click', () => {
+  dobMonthEl.value = '';
+  dobDayEl.value = '';
+  dobYearEl.value = '';
+  document.querySelectorAll('input[name="gender"]').forEach(r => r.checked = false);
+  feetEl.value = '';
+  inchesEl.value = '';
+  weightEl.value = '';
+  summaryEl.value = '';
+  caseNotesEl.value = '';
+  resultEl.textContent = '';
+  resultEl.className = '';
+});
+
+copyBtn.addEventListener('click', async () => {
+  const text = caseNotesEl.value.trim();
+  if (!text) return;
+  try { await navigator.clipboard.writeText(text); } catch {}
+});
+
+calcBtn.addEventListener('click', () => {
+  const gender = currentGender();
+  if (!gender) { alert('Please select Male or Female.'); return; }
+
+  const a = parseDOBParts(dobMonthEl.value, dobDayEl.value, dobYearEl.value);
+  if (!a || !a.ok) { alert('Please enter DOB as three valid values.'); return; }
+
+  // 16+
+  if (a.y >= 16) {
+    const baseAge = (a.total < 36 && a.total >= 10) ? `${a.y}yrs ${a.m}mos (${a.total} mos)` : `${a.y}yrs ${a.m}mos`;
+    summaryEl.value = `${gender} ${baseAge}`;
+    resultEl.textContent = 'child is 16 or older, please use the CMC calculator to assess BMI';
+    resultEl.className = 'red';
+    caseNotesEl.value = '';
+    return;
+  }
+
+  const ft = +feetEl.value || 0;
+  const inc = +inchesEl.value || 0;
+  const w = parseFloat(weightEl.value);
+  const weightOK = !isNaN(w) && isFinite(w) && w > 0;
+  const totalIn = ft*12 + inc;
+
+  let decision = '';
+  let bmi = null;
+  let formattedLine = '';
+  let show = '';
+
+  if (a.total < 36) {
+    const need = getMinWeight(a.total, gender);
+    decision = (weightOK && w >= need) ? 'Standard' : 'Decline';
+    const decTag = (decision === 'Decline') ? '<B> needs confirmation </b>' : 'std';
+
+    const showAge = (a.total >= 10) ? `${a.y}yrs ${a.m}mos (${a.total} mos)` : `${a.y}yrs ${a.m}mos`;
+    const caseAge = `${a.total} mos`;
+
+    const weightRounded = Math.round(weightOK ? w : 0);
+    formattedLine = `${gender} ${caseAge}, ${ft}.${inc}.${weightRounded}# (${decTag})`;
+    show = `${gender} ${showAge}`;
+
+  } else {
+    if (totalIn > 0 && weightOK) {
+      bmi = Math.round((w / (totalIn*totalIn)) * 703 * 10) / 10; // 1 dp
+      const ageKey = nearestHalf(a.total/12, 3.0, 16.0);
+      const rng = getDeclineRange(ageKey, gender);
+      if (rng) decision = (bmi < rng.low || bmi > rng.high) ? 'Decline' : 'Standard';
+      const decTag = (decision === 'Decline') ? '<B> needs confirmation </b>' : 'std';
+      const weightRounded = Math.round(w);
+      formattedLine = `${gender} ${a.y}yrs ${a.m}mos, ${ft}.${inc}.${weightRounded}# (BMI: ${fmtFloat(bmi)}, ${decTag})`;
+    }
+    show = `${gender} ${a.y}yrs ${a.m}mos`;
+    if (bmi != null) show += `\nBMI: ${fmtFloat(bmi)}`;
+  }
+
+  summaryEl.value = show;
+  caseNotesEl.value = formattedLine;
+
+  if (decision) {
+    resultEl.textContent = decision;
+    resultEl.className = decision === 'Decline' ? 'red' : 'green';
+  } else {
+    resultEl.textContent = '';
+    resultEl.className = '';
+  }
+});
+</script>
+</body>
+</html></template>
+
+<!-- Intentional Weight Loss Calculator (blue card formatting, unchanged functionality) -->
+<textarea id="code-iwl" class="code-hold"><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Intentional Weight Loss Calculator</title>
+<style>
+  :root{
+    --blue-bg:#f5f9ff;
+    --blue-soft:#eaf2ff;
+    --blue-panel:#ffffff;
+    --blue-border:#d8e6ff;
+    --blue-shadow:0 2px 10px rgba(31,87,164,.08);
+
+    --blue1:#2f6fbb;
+    --blue2:#1f57a4;
+    --blueDecision:#2b4ea2;
+    --red:#c1262c;
+    --btn:#eef3ff;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    background:var(--blue-bg);
+    color:#111;
+  }
+  .wrap{
+    max-width:640px;
+    margin:22px auto 32px auto;
+    padding:0 16px;
+  }
+  .panel{
+    background:var(--blue-panel);
+    border:1px solid var(--blue-border);
+    border-radius:16px;
+    padding:18px;
+    box-shadow:var(--blue-shadow);
+    text-align:left;
+  }
+  h1{
+    margin:0 0 12px 0;
+    font-size:20px;
+    font-weight:800;
+    color:var(--blue2);
+  }
+  .row{
+    display:grid;
+    grid-template-columns: auto auto 1fr 1fr;
+    gap:12px;
+    align-items:end;
+  }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  label{ font-size:12px; color:#2a4d86; font-weight:700; }
+  input[type="number"]{
+    width:7ch;
+    padding:10px 12px;
+    border:1px solid var(--blue-border);
+    border-radius:12px;
+    background:#fff;
+    font-size:14px;
+    text-align:left;
+    -moz-appearance:textfield;
+    outline:none;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance: none; margin:0; }
+  input[type="number"]:focus{
+    border-color:#bcd3ff; box-shadow:0 0 0 3px rgba(60,116,204,0.18);
+  }
+
+  .btn{
+    padding:10px 16px;
+    border-radius:999px;
+    border:1px solid var(--blue-border);
+    background:var(--btn);
+    cursor:pointer;
+    font-family:inherit;
+    font-size:14px;
+    transition:transform .02s ease-in-out, background .15s;
+    color:#174a97;
+  }
+  .btn:hover{ background:var(--blue-soft); }
+  .btn:active{ transform:scale(0.99); }
+
+  .break{ border-top:1px solid var(--blue-border); margin:14px 0; }
+  .section-title{
+    color:#2b4ea2;
+    font-size:13px;
+    background:var(--blue-soft);
+    padding:6px 10px;
+    border-radius:10px;
+    display:inline-block;
+    font-weight:700;
+  }
+  .spacer{ height:10px; }
+  .memo-box{
+    width:100%;
+    min-height:130px;
+    border:1px solid var(--blue-border);
+    border-radius:12px;
+    background:#fff;
+    padding:10px 12px;
+  }
+  .memo-box ul{ margin:0; padding-left:22px; }
+  .memo-box li{ margin:6px 0; line-height:1.35; }
+  .blue1{ color:var(--blue1); }
+  .blue2{ color:var(--blue2); }
+  .decision{ color:var(--blueDecision); font-weight:700; font-size:15px; }
+  .mib{ color:var(--red); font-weight:800; font-size:15px; }
+  .case-notes{
+    width:100%;
+    min-height:110px;
+    border:1px solid var(--blue-border);
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:14px;
+    line-height:1.4;
+    background:#fff;
+    outline:none;
+  }
+  .light-red{ color:#d44; }
+  .mib-section{
+    border:2px solid var(--red);
+    border-radius:12px;
+    padding:12px;
+    background:#fff;
+  }
+  .mib-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .mib-row label{ font-size:12px; color:#2a4d86; font-weight:700; }
+  select{
+    padding:8px 10px;
+    border:1px solid var(--blue-border);
+    border-radius:12px;
+    background:#fff;
+    font-size:14px;
+    outline:none;
+  }
+  .mib-output{ font-weight:700; font-size:15px; }
+  .caption{ font-size:12px; color:#4969a9; margin-top:8px; }
+  .caption + .spacer{ height:8px; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel" id="app">
+      <h1>Intentional Weight Loss Calculator</h1>
+      <div class="section-title">Build Details</div>
+      <div class="spacer"></div>
+
+      <div class="row">
+        <div class="field">
+          <label for="ft">Ft</label>
+          <input id="ft" type="number" inputmode="decimal" step="0.1" placeholder="0" />
+        </div>
+        <div class="field">
+          <label for="inch">In</label>
+          <input id="inch" type="number" inputmode="decimal" step="0.1" placeholder="0" />
+        </div>
+        <div class="field">
+          <label for="current">Current weight (lbs)</label>
+          <input id="current" type="number" inputmode="decimal" step="0.1" placeholder="0" />
+        </div>
+        <div class="field">
+          <label for="lost">Reported Weight Loss (lbs)</label>
+          <input id="lost" type="number" inputmode="decimal" step="0.1" placeholder="0" />
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <button id="calcBtn" class="btn" type="button">Calculate</button>
+
+      <div class="break"></div>
+
+      <div class="section-title">Results</div>
+      <div class="spacer"></div>
+
+      <div id="memo" class="memo-box" aria-readonly="true">
+        <ul id="memoList"></ul>
+      </div>
+
+      <div class="spacer"></div>
+      <button id="copyMibBtn" class="btn" type="button" style="display:none;">Copy MIB code</button>
+
+      <div id="mibSection" class="mib-section" style="display:none;">
+        <div class="section-title">MIB Code</div>
+        <div class="spacer"></div>
+        <div id="mibNotice" class="mib" style="display:none;">
+          Weight lost is greater or equal to 10% of original build, MIB code needed
+        </div>
+        <div class="spacer"></div>
+        <div class="mib-row">
+          <label for="mibSource">MIB source letter</label>
+          <select id="mibSource">
+            <option value="X">Labs/paramed – X</option>
+            <option value="E">Applicant – E</option>
+            <option value="Z">Medical records - Z</option>
+          </select>
+          <button id="genMibBtn" class="btn" type="button">Generate MIB code</button>
+          <span id="mibDisplay" class="mib-output"></span>
+        </div>
+        <div class="spacer"></div>
+        <button id="copyMibGenBtn" class="btn" type="button" style="display:none;">Copy MIB code</button>
+      </div>
+
+      <div class="break"></div>
+
+      <div class="section-title">Case Notes</div>
+      <div id="notesCaption" class="caption">Click inside text box to edit case note</div>
+      <div class="spacer"></div>
+
+      <div id="notes" class="case-notes" contenteditable="true" aria-label="Case Notes"></div>
+
+      <div class="spacer"></div>
+      <div style="display:flex; gap:10px;">
+        <button id="copyNotesBtn" class="btn" type="button">Copy</button>
+        <button id="clearBtn" class="btn" type="button">Clear</button>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const ftEl = $('ft');
+  const inEl = $('inch');
+  const curEl = $('current');
+  const lostEl = $('lost');
+  const calcBtn = $('calcBtn');
+  const memoList = $('memoList');
+  const copyMibBtn = $('copyMibBtn');
+  const notesEl = $('notes');
+  const copyNotesBtn = $('copyNotesBtn');
+  const clearBtn = $('clearBtn');
+
+  const mibSection = $('mibSection');
+  const mibNotice = $('mibNotice');
+  const mibSource = $('mibSource');
+  const genMibBtn = $('genMibBtn');
+  const mibDisplay = $('mibDisplay');
+  const copyMibGenBtn = $('copyMibGenBtn');
+
+  const r1 = v => Math.round((v + Number.EPSILON) * 10) / 10;
+
+  function val(n){
+    const x = parseFloat(n);
+    return Number.isFinite(x) ? x : 0;
+  }
+  function clearMemo(){ memoList.innerHTML = ''; }
+  function addMemoItem(text, className){
+    const li = document.createElement('li');
+    li.textContent = text;
+    if (className) li.className = className;
+    memoList.appendChild(li);
+  }
+
+  function onCalculate(){
+    clearMemo();
+    copyMibBtn.style.display = 'none';
+    copyMibBtn.dataset.code = '';
+
+    mibSection.style.display = 'none';
+    mibNotice.style.display = 'none';
+    mibDisplay.textContent = '';
+    copyMibGenBtn.style.display = 'none';
+
+    const ft = val(ftEl.value);
+    const inch = val(inEl.value);
+    const current = val(curEl.value);
+    const lost = val(lostEl.value);
+
+    const prior = current + lost;
+    const fivePct = 0.05 * prior;
+    const adjustedBuild = current + (lost / 2);
+    const isTenPctOrMore = lost >= 0.10 * prior;
+
+    addMemoItem(`Prior build ${r1(prior)} lbs`, 'blue1');
+    addMemoItem(`5% of Prior build = ${r1(fivePct)} lbs`, 'blue2');
+
+    if (lost > fivePct){
+      addMemoItem(`weight lost is more than 5% - Adjusted build = ${r1(adjustedBuild)} lbs`, 'decision');
+    } else {
+      addMemoItem(`weight lost is less than 5%, no adjustment to build.`, 'decision');
+    }
+
+    if (isTenPctOrMore){
+      mibSection.style.display = 'block';
+      mibNotice.style.display = 'block';
+    }
+
+    notesEl.innerHTML = '';
+
+    if (lost > fivePct){
+      const adjWhole = Math.round(adjustedBuild);
+      const ftWhole = Math.round(ft);
+      const inWhole = Math.round(inch);
+
+      notesEl.textContent =
+        `${Math.round(lost)} lbs weight loss - > 5% of prior build, adjusted build ${ftWhole}.${inWhole}.${adjWhole}#`;
+    } else {
+      notesEl.textContent = `${r1(lost)} lbs weight loss – <5% of prior build, no build adjustment`;
+    }
+  }
+
+  function buildMibCode(){
+    const ft = parseFloat(ftEl.value) || 0;
+    const inch = parseFloat(inEl.value) || 0;
+    const current = parseFloat(curEl.value) || 0;
+    const lost = parseFloat(lostEl.value) || 0;
+
+    const a = mibSource.value;
+    const b = (a === 'X') ? '#' : 'N';
+    const x = ft;
+    const y = inch;
+    const z = r1(current);
+    const c = Math.round(lost);
+
+    return `${x}.${y}.${z}#${a}${b}(${c})`;
+  }
+
+  calcBtn.addEventListener('click', onCalculate);
+
+  genMibBtn.addEventListener('click', ()=>{
+    const code = buildMibCode();
+    mibDisplay.textContent = code;
+    copyMibGenBtn.dataset.code = code;
+    copyMibGenBtn.style.display = 'inline-block';
+  });
+
+  copyMibGenBtn.addEventListener('click', async ()=>{
+    const code = copyMibGenBtn.dataset.code || '';
+    if (code){
+      try{ await navigator.clipboard.writeText(code); }catch{}
+    }
+  });
+
+  copyNotesBtn.addEventListener('click', async ()=>{
+    const txt = notesEl.textContent || '';
+    try{ await navigator.clipboard.writeText(txt); }catch{}
+  });
+
+  clearBtn.addEventListener('click', ()=>{
+    ftEl.value = '';
+    inEl.value = '';
+    curEl.value = '';
+    lostEl.value = '';
+    clearMemo();
+    notesEl.textContent = '';
+    copyMibBtn.style.display = 'none';
+    copyMibBtn.dataset.code = '';
+    mibSection.style.display = 'none';
+    mibNotice.style.display = 'none';
+    mibDisplay.textContent = '';
+    copyMibGenBtn.style.display = 'none';
+    mibSource.selectedIndex = 0;
+    ftEl.focus();
+  });
+})();
+</script>
+</body>
+</html></textarea>
+
+<!-- Date/MIB Time Letter Calculator (captions updated only) -->
+<textarea id="code-date" class="code-hold"><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Date Calculator • Time Since / MIB Letter • Future Date</title>
+<style>
+  :root{
+    --purple: #6f63c2;
+    --purple-2:#8a81d9;
+    --purple-3:#b5aff0;
+    --border:#ddd8f2;
+    --bg:#fcfbff;
+    --text:#1a1a1a;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  }
+  .wrap{ max-width:720px; margin:24px auto 36px; padding:0 16px; }
+  .panel{
+    background:#fff; border:1px solid var(--border); border-radius:14px;
+    padding:18px; box-shadow:0 1px 8px rgba(111,99,194,0.08);
+  }
+  h1{ margin:0 0 12px; font-weight:700; font-size:22px; color:var(--purple); }
+
+  .row{ display:flex; gap:12px; align-items:end; flex-wrap:wrap; }
+  .radio-line + .row{ margin-top:14px; }
+
+  .field{ display:flex; flex-direction:column; gap:6px; }
+
+  label{ font-size:12px; color:var(--purple); font-weight:600; }
+
+  .break{ border-top:1px solid var(--border); margin:14px 0; }
+  .spacer{ height:10px; }
+
+  input[type="number"]{
+    width:4ch; padding:8px 8px; border:1px solid var(--border);
+    border-radius:10px; font-size:14px; background:#fff; -moz-appearance:textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+
+  .btn{
+    padding:10px 16px; border-radius:999px; border:1px solid var(--border);
+    background:#f1efff; color:#3f2fb3; font-weight:600; cursor:pointer;
+    font-family:inherit; transition:transform .02s, background .15s;
+  }
+  .btn:active{ transform:scale(0.99); }
+  .clear-row{ display:flex; justify-content:flex-end; }
+
+  .date-group{ display:flex; align-items:center; gap:6px; }
+  .date-group input{ width:5ch; text-align:center; }
+  .date-group input.year{ width:8ch; }
+  .slash{ color:#9b93e6; }
+
+  .radio-line{ display:flex; gap:16px; align-items:center; flex-wrap:wrap; }
+
+  .result-box{
+    width:100%; min-height:90px; padding:10px 12px; border:1px solid var(--border);
+    border-radius:10px; background:#fff; font-weight:700; line-height:1.4;
+  }
+  .res-line{ margin:8px 0; }
+  .shade1{ color:var(--purple); }
+  .shade2{ color:var(--purple-2); }
+  .shade3{ color:var(--purple-3); }
+
+  .disabled{ opacity:.55; }
+  .hide{ display:none; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel" id="app">
+      <h1>Date Duration/MIB Time Modifier Calculator</h1>
+
+      <div class="radio-line" role="group" aria-label="Mode">
+        <label><input type="radio" name="mode" id="modeSince" /> Calculate Time Between Two Dates/MIB Time Modifier</label>
+        <label><input type="radio" name="mode" id="modeFuture" /> Calculate Future Date</label>
+      </div>
+
+      <div class="break"></div>
+
+      <div id="sinceSec" class="hide">
+        <div class="radio-line">
+          <label><input type="checkbox" id="sinceToday" checked /> Today’s Date</label>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Date 1</label>
+            <div id="sinceDate1Grp" class="date-group">
+              <input id="s1m" class="month" type="number" min="1" max="12" placeholder="MM" disabled />
+              <span class="slash">/</span>
+              <input id="s1d" class="day" type="number" min="1" max="31" placeholder="DD" disabled />
+              <span class="slash">/</span>
+              <input id="s1y" class="year" type="number" min="1" max="9999" placeholder="YYYY" disabled />
+            </div>
+          </div>
+          <div class="field">
+            <label>Date 2</label>
+            <div id="sinceDate2Grp" class="date-group">
+              <input id="s2m" class="month" type="number" min="1" max="12" placeholder="MM" />
+              <span class="slash">/</span>
+              <input id="s2d" class="day" type="number" min="1" max="31" placeholder="DD" />
+              <span class="slash">/</span>
+              <input id="s2y" class="year" type="number" min="1" max="9999" placeholder="YYYY" />
+            </div>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="radio-line">
+          <label><input type="checkbox" id="sinceMib" /> Generate MIB Time Modifier Letter</label>
+        </div>
+
+        <div class="spacer"></div>
+        <button class="btn" id="sinceCalc" type="button">Calculate</button>
+
+        <div class="spacer"></div>
+        <div class="field">
+          <div id="sinceOut" class="result-box" aria-live="polite"></div>
+        </div>
+
+        <div class="break"></div>
+      </div>
+
+      <div id="futureSec" class="hide">
+        <div class="radio-line">
+          <label><input type="checkbox" id="futureToday" checked /> Today’s Date</label>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Date 1</label>
+            <div id="futureDate1Grp" class="date-group">
+              <input id="f1m" class="month" type="number" min="1" max="12" placeholder="MM" disabled />
+              <span class="slash">/</span>
+              <input id="f1d" class="day" type="number" min="1" max="31" placeholder="DD" disabled />
+              <span class="slash">/</span>
+              <input id="f1y" class="year" type="number" min="1" max="9999" placeholder="YYYY" disabled />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="amt">Amount</label>
+            <input type="number" id="amt" min="0" max="999" placeholder="0" />
+          </div>
+
+          <div class="field">
+            <div class="radio-line">
+              <label><input type="radio" name="addUnit" id="unitMonths" checked /> Months</label>
+              <label><input type="radio" name="addUnit" id="unitYears" /> Years</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+        <button class="btn" id="futureCalc" type="button">Calculate</button>
+
+        <div class="spacer"></div>
+        <div class="field">
+          <div id="futureOut" class="result-box" aria-live="polite"></div>
+        </div>
+
+        <div class="break"></div>
+      </div>
+
+      <div class="clear-row">
+        <button class="btn" id="clearAll" type="button">Clear</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  const modeSince = $('modeSince');
+  const modeFuture = $('modeFuture');
+  const sinceSec = $('sinceSec');
+  const futureSec = $('futureSec');
+
+  const sinceToday = $('sinceToday');
+  const sinceOut = $('sinceOut');
+  const sinceCalc = $('sinceCalc');
+  const s1m = $('s1m'), s1d = $('s1d'), s1y = $('s1y');
+  const s2m = $('s2m'), s2d = $('s2d'), s2y = $('s2y');
+  const sinceMib = $('sinceMib');
+
+  const futureToday = $('futureToday');
+  const f1m = $('f1m'), f1d = $('f1d'), f1y = $('f1y');
+  const amt = $('amt');
+  const unitMonths = $('unitMonths');
+  const unitYears = $('unitYears');
+  const futureOut = $('futureOut');
+  const futureCalc = $('futureCalc');
+
+  const clearAll = $('clearAll');
+
+  const pad2 = n => String(n).padStart(2,'0');
+  function formatMDY(d){ return `${pad2(d.getMonth()+1)}/${pad2(d.getDate())}/${d.getFullYear()}`; }
+
+  function setDateFields(mEl,dEl,yEl, date){
+    mEl.value = pad2(date.getMonth()+1);
+    dEl.value = pad2(date.getDate());
+    yEl.value = String(date.getFullYear());
+  }
+  function toggleDateGroupEnabled(enabled, inputs){
+    inputs.forEach(el => { el.disabled = !enabled; el.classList.toggle('disabled', !enabled); });
+  }
+  function clearDateFields(mEl,dEl,yEl){
+    mEl.value = ''; dEl.value = ''; yEl.value = '';
+  }
+  function readDateFromFields(mEl,dEl,yEl){
+    const m = parseInt(mEl.value,10), d = parseInt(dEl.value,10), y = parseInt(yEl.value,10);
+    if(!m || !d || !y) return null;
+    const dt = new Date(y, m-1, d);
+    if (isNaN(dt)) return null;
+    if (dt.getMonth() !== m-1 || dt.getDate() !== d || dt.getFullYear() !== y) return null;
+    return dt;
+  }
+  function monthDiff(a, b){
+    let months = (b.getFullYear() - a.getFullYear()) * 12 + (b.getMonth() - a.getMonth());
+    if (b.getDate() < a.getDate()) months -= 1;
+    return months;
+  }
+  function addMonths(base, m){
+    const d = new Date(base.getTime());
+    const day = d.getDate();
+    d.setMonth(d.getMonth() + m + 1, 0);
+    const last = d.getDate();
+    d.setMonth(d.getMonth());
+    d.setDate(Math.min(day, last));
+    return d;
+  }
+  function addYears(base, y){
+    const d = new Date(base.getTime());
+    d.setFullYear(d.getFullYear() + y);
+    return d;
+  }
+
+  function updateMode(){
+    sinceSec.classList.toggle('hide', !modeSince.checked);
+    futureSec.classList.toggle('hide', !modeFuture.checked);
+  }
+  modeSince.addEventListener('change', updateMode);
+  modeFuture.addEventListener('change', updateMode);
+
+  function updateSinceToday(){
+    if (sinceToday.checked){
+      const now = new Date();
+      setDateFields(s1m,s1d,s1y, now);
+      toggleDateGroupEnabled(false, [s1m,s1d,s1y]);
+    } else {
+      toggleDateGroupEnabled(true, [s1m,s1d,s1y]);
+      clearDateFields(s1m,s1d,s1y);
+    }
+  }
+  sinceToday.addEventListener('change', updateSinceToday);
+
+  function updateFutureToday(){
+    if (futureToday.checked){
+      const now = new Date();
+      setDateFields(f1m,f1d,f1y, now);
+      toggleDateGroupEnabled(false, [f1m,f1d,f1y]);
+    } else {
+      toggleDateGroupEnabled(true, [f1m,f1d,f1y]);
+      clearDateFields(f1m,f1d,f1y);
+    }
+  }
+  futureToday.addEventListener('change', updateFutureToday);
+
+  sinceCalc.addEventListener('click', ()=>{
+    const d1 = sinceToday.checked ? new Date() : readDateFromFields(s1m,s1d,s1y);
+    const d2 = readDateFromFields(s2m,s2d,s2y);
+    if(!d1 || !d2){
+      sinceOut.innerHTML = `<div class="res-line shade1">Please enter both dates (mm/dd/yyyy).</div>`;
+      return;
+    }
+    const a = d1 <= d2 ? d1 : d2;
+    const b = d1 <= d2 ? d2 : d1;
+
+    const totalMonths = monthDiff(a, b);
+    const years = Math.floor(totalMonths / 12);
+    const months = totalMonths % 12;
+
+    const lines = [];
+    lines.push(`<div class="res-line shade3">${formatMDY(a)} → ${formatMDY(b)}</div>`);
+    lines.push(`<div class="res-line shade1">Time Between dates: ${years} year(s) and ${months} month(s).</div>`);
+
+    if (sinceMib.checked){
+      let letter;
+      if (years <= 1){ letter = 'N'; }
+      else if (years <= 2){ letter = 'B'; }
+      else if (years <= 5){ letter = 'C'; }
+      else if (years < 10){ letter = 'D'; }
+      else { letter = 'F'; } /* >= 10 years => F */
+      lines.push(`<div class="res-line shade2">MIB Time Letter : ${letter}</div>`);
+    }
+    sinceOut.innerHTML = lines.join('');
+  });
+
+  futureCalc.addEventListener('click', ()=>{
+    const base = futureToday.checked ? new Date() : readDateFromFields(f1m,f1d,f1y);
+    if(!base){
+      futureOut.innerHTML = `<div class="res-line shade1">Please enter Date 1 (mm/dd/yyyy).</div>`;
+      return;
+    }
+    const n = Math.max(0, Math.min(999, parseInt(amt.value,10) || 0));
+    let result = base;
+    if (unitYears.checked) result = addYears(base, n);
+    else result = addMonths(base, n);
+
+    futureOut.innerHTML =
+      `<div class="res-line shade2">${formatMDY(result)}</div>
+       <div class="res-line shade1">Future Date</div>`;
+  });
+
+  clearAll.addEventListener('click', ()=>{
+    modeSince.checked = false;
+    modeFuture.checked = false;
+    updateMode();
+
+    sinceToday.checked = true;
+    updateSinceToday();
+    s2m.value = ''; s2d.value = ''; s2y.value = '';
+    sinceMib.checked = false;
+    sinceOut.innerHTML = '';
+
+    futureToday.checked = true;
+    updateFutureToday();
+    amt.value = '';
+    unitMonths.checked = true; unitYears.checked = false;
+    futureOut.innerHTML = '';
+  });
+
+  updateSinceToday();
+  updateFutureToday();
+})();
+</script>
+</body>
+</html></textarea>
+
+<!-- BP Average Calculator (unchanged) -->
+<textarea id="code-bp" class="code-hold"><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blood Pressure Average</title>
+<style>
+  :root{
+    --g-bg: #f2fbf5;
+    --g-panel: #ffffff;
+    --g-border: #cfe8d7;
+    --g-accent: #6aa67c;
+    --g-accent-2:#4f8f66;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin: 0;
+    background: var(--g-bg);
+    color: var(--g-accent-2);
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 700;
+  }
+  .wrap{ max-width: 860px; margin: 24px auto 40px; padding: 0 16px; }
+  .panel{
+    background: var(--g-panel);
+    border: 1px solid var(--g-border);
+    border-radius: 14px;
+    box-shadow: 0 1px 8px rgba(79,143,102,.08);
+    padding: 16px;
+  }
+  .section{
+    border: 1px solid var(--g-border);
+    border-radius: 10px;
+    padding: 14px;
+    background: #f8fcfa;
+  }
+  .title{ margin: 0 0 6px; color: var(--g-accent-2); font-size: 18px; }
+  .caption{ margin: 0 0 12px; color: var(--g-accent); font-size: 13px; }
+
+  .bp-grid{ display: flex; gap: 16px; }
+  .col{ flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .divider{ display: none; width: 1px; background: var(--g-border); }
+
+  .row{
+    display: inline-flex; align-items: flex-end; gap: 10px;
+    padding: 8px 10px; border: 1px dashed var(--g-border);
+    border-radius: 10px; background: #ffffff;
+  }
+  .field{ display: flex; flex-direction: column; gap: 6px; }
+  .lbl{ font-size: 12px; color: var(--g-accent); }
+
+  input[type="number"]{
+    width: 5.5ch;
+    padding: 6px 8px;
+    border: 1px solid var(--g-border);
+    border-radius: 10px;
+    background: #ffffff;
+    color: var(--g-accent-2);
+    font: inherit;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
+
+  .slash{ color: var(--g-accent); font-size: 16px; padding: 0 2px 6px 2px; }
+
+  .actions{ display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn{
+    border: 1px solid var(--g-border); background: #e9f6ee; color: var(--g-accent-2);
+    border-radius: 999px; padding: 10px 16px; cursor: pointer;
+  }
+  .result{
+    display: inline-flex; gap: 10px; align-items: center;
+    padding: 10px 12px; border: 1px solid var(--g-border);
+    border-radius: 10px; background: #ffffff;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <h2 class="title">Blood Pressure Average</h2>
+      <div class="caption">Press tab key while in diastolic box to create a new line - maximum input 20 BP readings.</div>
+
+      <div class="section">
+        <div class="bp-grid">
+          <div id="col1" class="col"></div>
+          <div id="divider" class="divider" aria-hidden="true"></div>
+          <div id="col2" class="col"></div>
+        </div>
+      </div>
+
+      <div style="height:14px"></div>
+
+      <div class="section">
+        <div class="actions">
+          <button id="calcBtn" class="btn" type="button">Calculate</button>
+          <button id="clearBtn" class="btn" type="button">Clear</button>
+          <div id="resultBox" class="result" style="display:none;">
+            <span id="resultText">Total Average BP: —</span>
+            <button id="copyBtn" class="btn" type="button">Copy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const MAX_ROWS = 20;
+  const SECOND_COL_START = 11;
+
+  const col1 = document.getElementById('col1');
+  const col2 = document.getElementById('col2');
+  const divider = document.getElementById('divider');
+
+  const calcBtn = document.getElementById('calcBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const resultBox = document.getElementById('resultBox');
+  const resultText = document.getElementById('resultText');
+  const copyBtn = document.getElementById('copyBtn');
+
+  const rows = [];
+
+  function restrict3Digits(el){
+    el.addEventListener('input', () => {
+      if (el.value.length > 3) el.value = el.value.slice(0,3);
+      const n = parseInt(el.value, 10);
+      if (!Number.isFinite(n)) return;
+      if (n < 0) el.value = '0';
+      if (n > 999) el.value = '999';
+    });
+  }
+
+  function makeRow(index){
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const f1 = document.createElement('div');
+    f1.className = 'field';
+    const l1 = document.createElement('span');
+    l1.className = 'lbl';
+    l1.textContent = 'Systolic';
+    const sys = document.createElement('input');
+    sys.type = 'number'; sys.min = '0'; sys.max = '999';
+    restrict3Digits(sys);
+    f1.appendChild(l1); f1.appendChild(sys);
+
+    const slash = document.createElement('span');
+    slash.className = 'slash';
+    slash.textContent = '/';
+
+    const f2 = document.createElement('div');
+    f2.className = 'field';
+    const l2 = document.createElement('span');
+    l2.className = 'lbl';
+    l2.textContent = 'Diastolic';
+    const dia = document.createElement('input');
+    dia.type = 'number'; dia.min = '0'; dia.max = '999';
+    restrict3Digits(dia);
+    f2.appendChild(l2); f2.appendChild(dia);
+
+    row.appendChild(f1);
+    row.appendChild(slash);
+    row.appendChild(f2);
+
+    dia.addEventListener('keydown', (e) => {
+      const isLast = rows.length && rows[rows.length - 1].diaEl === dia;
+      if (isLast && e.key === 'Tab' && !e.shiftKey){
+        if (rows.length < MAX_ROWS){
+          e.preventDefault();
+          addRow();
+          rows[rows.length - 1].sysEl.focus();
+        }
+      }
+    });
+
+    return { rowEl: row, sysEl: sys, diaEl: dia };
+  }
+
+  function addRow(){
+    const idx = rows.length + 1;
+    const entry = makeRow(idx);
+    rows.push(entry);
+
+    const targetCol = (idx >= SECOND_COL_START) ? col2 : col1;
+    targetCol.appendChild(entry.rowEl);
+
+    if (idx >= SECOND_COL_START) divider.style.display = 'block';
+  }
+
+  addRow();
+
+  function getValidReadings(){
+    const vals = [];
+    for (const r of rows){
+      const s = parseInt(r.sysEl.value, 10);
+      const d = parseInt(r.diaEl.value, 10);
+      if (Number.isFinite(s) && Number.isFinite(d)){
+        vals.push([s, d]);
+      }
+    }
+    return vals;
+  }
+
+  calcBtn.addEventListener('click', ()=>{
+    const readings = getValidReadings();
+    if (readings.length === 0){
+      resultText.textContent = 'Total Average BP: —';
+      resultBox.style.display = 'inline-flex';
+      copyBtn.dataset.copy = resultText.textContent;
+      return;
+    }
+    let sumS = 0, sumD = 0;
+    for (const [s, d] of readings){ sumS += s; sumD += d; }
+    const avgS = Math.round(sumS / readings.length);
+    const avgD = Math.round(sumD / readings.length);
+    const avgStr = `${avgS}/${avgD}`;
+    resultText.textContent = `Total Average BP: ${avgStr}`;
+    resultBox.style.display = 'inline-flex';
+    copyBtn.dataset.copy = resultText.textContent;
+  });
+
+  copyBtn.addEventListener('click', async ()=>{
+    const text = copyBtn.dataset.copy || '';
+    try{
+      await navigator.clipboard.writeText(text);
+    }catch{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try{ document.execCommand('copy'); }catch(_){}
+      document.body.removeChild(ta);
+    }
+  });
+
+  clearBtn.addEventListener('click', ()=>{
+    rows.forEach(r => r.rowEl.remove());
+    rows.length = 0;
+    col1.innerHTML = '';
+    col2.innerHTML = '';
+    divider.style.display = 'none';
+
+    resultText.textContent = 'Total Average BP: —';
+    resultBox.style.display = 'none';
+    copyBtn.dataset.copy = '';
+
+    addRow();
+    rows[0].sysEl.focus();
+  });
+})();
+</script>
+</body>
+</html></textarea>
+
+<script>
+  // Inject each iframe by writing the HTML directly. This avoids Chrome quirks with dynamic srcdoc.
+  const frameMap = {
+    'frame-bmi': 'code-bmi',
+    'frame-iwl': 'code-iwl',
+    'frame-date': 'code-date',
+    'frame-bp': 'code-bp'
+  };
+
+  function loadIntoFrame(iframe, htmlString){
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(htmlString);
+    doc.close();
+  }
+
+  // BMI lives in a <template>, so use innerHTML; others are in textareas, use .value
+  for (const [frameId, codeId] of Object.entries(frameMap)){
+    const iframe = document.getElementById(frameId);
+    const el = document.getElementById(codeId);
+    const code = el.tagName.toLowerCase() === 'template' ? el.innerHTML : el.value;
+    loadIntoFrame(iframe, code);
+  }
+
+  // Tab switching logic
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  const frames = Array.from(document.querySelectorAll('.frames iframe'));
+  const barTitle = document.getElementById('barTitle');
+
+  function setActive(targetFrameId, titleText){
+    frames.forEach(f => f.classList.toggle('hidden', f.id !== targetFrameId));
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.frame === targetFrameId));
+    barTitle.textContent = titleText;
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const frameId = tab.dataset.frame;
+      const title = tab.querySelector('.title')?.textContent || 'UW Buddy';
+      setActive(frameId, title);
+    });
+  });
+</script>
+</body>
+</html>
